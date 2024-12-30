@@ -1,0 +1,70 @@
+﻿@page "/add-tag"
+@using CashTrack.DataModel.Model
+@inject ITagService TagService
+@inject NavigationManager NavigationManager
+
+<h3>Add Tag</h3>
+
+<div class="form-container">
+    <div>
+        <label for="tagName">Tag Name:</label>
+        <input id="tagName" @bind="newTagName" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary" @onclick="OnAddTag">Add Tag</button>
+
+    @if (isTagAdded)
+    {
+        <div class="alert alert-success mt-3">
+            Tag added successfully!
+        </div>
+    }
+
+    @if (isError)
+    {
+        <div class="alert alert-danger mt-3">
+            The tag already exists. Please choose a different name.
+        </div>
+    }
+</div>
+
+<button class="btn btn-secondary mt-3" @onclick="NavigateBack">Back</button>
+
+@code {
+    private string newTagName;
+    private bool isTagAdded = false;
+    private bool isError = false;
+
+    private async Task OnAddTag()
+    {
+        if (string.IsNullOrWhiteSpace(newTagName))
+        {
+            isError = true;
+            return;
+        }
+
+        // Create a new Tag object
+        var newTag = new Tag(newTagName);
+
+        // Try adding the tag using the TagService
+        var result = await TagService.AddTag(newTag);
+
+        if (result)
+        {
+            isTagAdded = true;
+            isError = false;
+            newTagName = string.Empty; 
+        }
+        else
+        {
+            isError = true;
+            isTagAdded = false;
+        }
+    }
+
+     private void NavigateBack()
+    {
+       
+        NavigationManager.NavigateTo("/add-transaction");
+    } 
+}

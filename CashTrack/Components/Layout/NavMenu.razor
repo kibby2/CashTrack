@@ -7,6 +7,8 @@
     <NavLink class="nav-link" href="/settings">Settings</NavLink>
 
     
+    <NavLink class="nav-link btn btn-link" href="/add-transaction">Add Transaction</NavLink>
+
     <button class="nav-link btn btn-link" @onclick="ConfirmLogout">Log Out</button>
 </div>
 
@@ -24,23 +26,20 @@
 @code {
     private bool showLogoutConfirmation = false;
 
-    
     private void ConfirmLogout()
     {
         showLogoutConfirmation = true;
     }
 
-    
     private void CancelLogout()
     {
         showLogoutConfirmation = false;
     }
 
-    
     private void Logout()
     {
-        showLogoutConfirmation = false;  
-        NavManager.NavigateTo("/login", true);  
+        showLogoutConfirmation = false;
+        NavManager.NavigateTo("/login", true);
     }
 }
 

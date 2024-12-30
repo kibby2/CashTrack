@@ -1,0 +1,102 @@
+﻿@page "/add-transaction"
+@using DataModel.Model
+@inject NavigationManager NavManager
+@inject ITransactionService TransactionService
+@inject ITagService TagService
+
+<h3>Add Transaction</h3>
+
+<EditForm Model="@transaction" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="date">Date</label>
+        <InputDate id="date" class="form-control" @bind-Value="transaction.date" />
+    </div>
+
+    <div class="form-group">
+        <label for="transactionType">Transaction Type</label>
+        <InputSelect id="transactionType" class="form-control" @bind-Value="transaction.transactionType">
+            <option value="credit">Credit</option>
+            <option value="debit">Debit</option>
+        </InputSelect>
+    </div>
+
+    <div class="form-group">
+        <label for="title">Title</label>
+        <InputText id="title" class="form-control" @bind-Value="transaction.title" />
+    </div>
+
+    <div class="form-group">
+        <label for="amount">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="transaction.amount" />
+    </div>
+
+    <div class="form-group">
+        <label for="notes">Notes (Optional)</label>
+        <InputText id="notes" class="form-control" @bind-Value="transaction.notes" />
+    </div>
+
+    <div class="form-group">
+        <label for="source">Source</label>
+        <InputText id="source" class="form-control" @bind-Value="transaction.source" />
+    </div>
+
+    <div class="form-group">
+        <label for="dueDate">Due Date</label>
+        <InputDate id="dueDate" class="form-control" @bind-Value="transaction.dueDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="tag">Tag</label>
+        <InputSelect id="tag" class="form-control" @bind-Value="transaction.tagID">
+            <option value="">Select a Tag</option>
+            @foreach (var tag in tags)
+            {
+                <option value="@tag.TagID">@tag.TagName</option>
+            }
+        </InputSelect>
+        <button class="btn btn-link" @onclick="NavigateToAddTag">Add Tag</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Transaction</button>
+
+    @if (showError)
+    {
+        <div class="alert alert-danger mt-3">
+            An error occurred while saving the transaction. Please try again.
+        </div>
+    }
+</EditForm>
+
+@code {
+    private Transaction transaction = new Transaction { date = DateTime.Now, dueDate = DateTime.Now };
+    private List<Tag> tags;
+    private bool showError = false;  
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load all tags for the dropdown menu
+        tags = await TagService.GetAllTags();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        
+        bool isSuccess = await TransactionService.AddTransaction(transaction);
+        if (isSuccess)
+        {
+            NavManager.NavigateTo("/");  
+        }
+        else
+        {
+            showError = true;  
+        }
+    }
+
+    private void NavigateToAddTag()
+    {
+        NavManager.NavigateTo("/add-tag");
+    }
+}
