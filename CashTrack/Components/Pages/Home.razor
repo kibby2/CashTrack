@@ -67,6 +67,8 @@
                     }
                     </tbody>
                 </table>
+                <!-- View All Button for Debts -->
+                <button class="btn btn-primary" @onclick="NavigateToDebtPage">View All</button>
         }
         else
         {
@@ -85,14 +87,21 @@
     protected override async Task OnInitializedAsync()
     {
         var allTransactions = await transactionService.GetAllTransactions();
+        var oneMonthAgo = DateTime.Now.AddMonths(-1); // Calculate date for 1 month ago
 
-        // Combine credit and debit transactions for the "Recent Transactions" table
+        // Filter credit and debit transactions for the last month
         recentTransactions = allTransactions
-            .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
-            .OrderByDescending(t => t.date) // Sorting by the most recent date
+            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
+                        t.date >= oneMonthAgo)
+            .OrderByDescending(t => t.date) // Sort by the most recent date
             .ToList();
 
-        debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
+        // Filter debt transactions for the last month and "pending" status
+        debtTransactions = allTransactions
+            .Where(t => t.transactionType == TransactionType.debt &&
+                        t.status == "unpaid" &&
+                        t.date >= oneMonthAgo) // Filter for the last month
+            .ToList();
 
         balance = await transactionService.GetBalance();
     }
@@ -112,5 +121,11 @@
     private void NavigateToCreditDebit()
     {
         Navigation.NavigateTo("/credit-debit");
+    }
+
+    // Method to navigate to the Debts page
+    private void NavigateToDebtPage()
+    {
+        Navigation.NavigateTo("/debt"); // You can replace "/debts" with the correct URL or route
     }
 }

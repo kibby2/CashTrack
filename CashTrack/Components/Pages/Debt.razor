@@ -1,0 +1,129 @@
+﻿@page "/debt"
+@using CashTrack.DataModel.Model
+@using CashTrack.DataAccess.Services.Interface
+@inject ITransactionService TransactionService
+@inject NavigationManager NavManager
+
+<h3>Unpaid Debts</h3>
+
+<div class="form-group">
+    <label for="titleFilter">Search by Title</label>
+    <InputText id="titleFilter" class="form-control" @bind-Value="titleFilter" placeholder="Enter title" />
+</div>
+
+<div class="form-group">
+    <label for="startDateFilter">Start Date</label>
+    <InputDate id="startDateFilter" class="form-control" @bind-Value="startDateFilter" />
+</div>
+
+<div class="form-group">
+    <label for="endDateFilter">End Date</label>
+    <InputDate id="endDateFilter" class="form-control" @bind-Value="endDateFilter" />
+</div>
+
+<button class="btn btn-primary" @onclick="ApplyFilters">Apply Filters</button>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Amount</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var debt in filteredDebts)
+        {
+            <tr>
+                <td>@debt.title</td>
+                <td>@debt.amount</td>
+                <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
+                <td>@debt.status</td>
+                <td>
+                    <button class="btn btn-success" @onclick="() => PayDebt(debt.transactionId)">Pay</button>
+                    <button class="btn btn-danger" @onclick="() => DeleteDebt(debt.transactionId)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private string titleFilter = string.Empty;
+    private DateTime? startDateFilter = null;
+    private DateTime? endDateFilter = null;
+    private List<Transaction> allDebts = new List<Transaction>();
+    private List<Transaction> filteredDebts = new List<Transaction>();
+
+    // Initialize the data
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDebts();
+    }
+
+    // Load the debts from the service
+    private async Task LoadDebts()
+    {
+        var debts = await TransactionService.GetAllTransactions();
+        allDebts = debts.Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid").ToList();
+        filteredDebts = allDebts;
+    }
+
+    // Apply filters based on title and date range
+    private void ApplyFilters()
+    {
+        filteredDebts = allDebts;
+
+        if (!string.IsNullOrWhiteSpace(titleFilter))
+        {
+            filteredDebts = filteredDebts.Where(d => d.title.Contains(titleFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        if (startDateFilter.HasValue)
+        {
+            filteredDebts = filteredDebts.Where(d => d.duedate >= startDateFilter.Value).ToList();
+        }
+
+        if (endDateFilter.HasValue)
+        {
+            filteredDebts = filteredDebts.Where(d => d.duedate <= endDateFilter.Value).ToList();
+        }
+    }
+
+    // Pay a debt
+    private async Task PayDebt(Guid transactionId)
+    {
+        var success = await TransactionService.PayDebt(transactionId);
+
+        if (success)
+        {
+            // Refresh the list after the debt is paid
+            await LoadDebts();
+        }
+        else
+        {
+            // Handle failure (e.g., insufficient balance, etc.)
+            Console.WriteLine("Failed to pay debt.");
+        }
+    }
+
+    // Delete a debt
+    private async Task DeleteDebt(Guid transactionId)
+    {
+        var success = await TransactionService.DeleteTransaction(transactionId);
+
+
+        if (success)
+        {
+            // Refresh the list after the debt is deleted
+            await LoadDebts();
+        }
+        else
+        {
+            // Handle failure (e.g., transaction not found)
+            Console.WriteLine("Failed to delete debt.");
+        }
+    }
+}

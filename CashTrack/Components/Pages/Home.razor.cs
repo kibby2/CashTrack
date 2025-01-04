@@ -16,11 +16,19 @@ namespace CashTrack.Pages
         protected override async Task OnInitializedAsync()
         {
             var allTransactions = await TransactionService.GetAllTransactions();
+            var oneMonthAgo = DateTime.Now.AddMonths(-1); // Get the date one month ago
 
-            // Filter transactions by type
-            creditTransactions = allTransactions.Where(t => t.transactionType == TransactionType.credit).ToList();
-            debitTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debit).ToList();
-            debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
+            // Filter transactions by type and date range (last 1 month)
+            creditTransactions = allTransactions
+                .Where(t => t.transactionType == TransactionType.credit && t.date >= oneMonthAgo)
+                .ToList();
+            debitTransactions = allTransactions
+                .Where(t => t.transactionType == TransactionType.debit && t.date >= oneMonthAgo)
+                .ToList();
+            debtTransactions = allTransactions
+                .Where(t => t.transactionType == TransactionType.debt && t.status == "unpaid" && t.date >= oneMonthAgo)
+                .ToList();
         }
     }
 }
+

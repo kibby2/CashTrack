@@ -1,7 +1,6 @@
 ﻿using CashTrack.DataModel.Model;
 using CashTrack.DataAccess.Services.Interface;
 using System.Text.Json;
-using System.Linq;
 
 namespace CashTrack.DataAccess.Services
 {
@@ -23,6 +22,7 @@ namespace CashTrack.DataAccess.Services
         {
             var currentBalance = await GetBalance();
 
+            // Ensure there is enough balance for debit transactions
             if (transaction.transactionType == TransactionType.debit)
             {
                 if (transaction.amount > currentBalance)
@@ -31,22 +31,26 @@ namespace CashTrack.DataAccess.Services
                 }
             }
 
+            // Handle credit transaction
             if (transaction.transactionType == TransactionType.credit)
             {
                 transaction.remainingBalance = currentBalance + transaction.amount;
             }
+            // Handle debit transaction
             else if (transaction.transactionType == TransactionType.debit)
             {
                 transaction.remainingBalance = currentBalance - transaction.amount;
             }
+            // Handle debt transaction
             else if (transaction.transactionType == TransactionType.debt)
             {
                 transaction.remainingBalance = currentBalance; // Debt doesn't affect balance
+                transaction.status = "unpaid";  // Explicitly set status to "unpaid" for debt transactions
             }
 
-            _transactions.Add(transaction);
-            SaveTransactions(_transactions);
-            return true;
+            _transactions.Add(transaction);  // Add the transaction to the list
+            SaveTransactions(_transactions);  // Save the updated transactions list
+            return true;  // Successfully added the transaction
         }
 
         public async Task<double> GetBalance()
@@ -73,7 +77,7 @@ namespace CashTrack.DataAccess.Services
 
             _transactions.Remove(transactionToDelete);
             SaveTransactions(_transactions); // Save the updated list
-            return true;
+            return true; // Successfully deleted the transaction
         }
 
         public async Task<bool> PayDebt(Guid transactionId)
@@ -85,9 +89,15 @@ namespace CashTrack.DataAccess.Services
                 return false; // Debt transaction not found
             }
 
+            var currentBalance = await GetBalance();
+            if (currentBalance < debtTransaction.amount)
+            {
+                return false; // Insufficient balance to pay the debt
+            }
+
             debtTransaction.status = "Paid";  // Mark the debt as "Paid"
             SaveTransactions(_transactions);  // Save the updated transaction list
-            return true;
+            return true; // Successfully updated the status to "Paid"
         }
 
         private List<Transaction> LoadTransactions()

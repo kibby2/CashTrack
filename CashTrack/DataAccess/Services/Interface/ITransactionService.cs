@@ -8,7 +8,6 @@ namespace CashTrack.DataAccess.Services.Interface
         Task< bool> AddTransaction(Transaction transaction);
         Task<double> GetBalance();
         Task<bool> DeleteTransaction(Guid transactionId);
-
         Task<bool> PayDebt(Guid transactionId);
 
     }

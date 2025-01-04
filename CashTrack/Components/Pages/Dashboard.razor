@@ -1,5 +1,59 @@
-﻿<h3>Dashboard</h3>
+﻿@page "/dashboard"
+@using CashTrack.DataModel.Model
+@using CashTrack.DataAccess.Services.Interface
+
+<h3>Paid Debts</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Due Date</th>
+            <th>Amount</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var debt in paidDebts)
+        {
+            <tr>
+                <td>@debt.title</td>
+                <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
+                <td>@debt.amount</td>
+                <td>
+                    <button class="btn btn-danger" @onclick="() => RemovePaidDebt(debt.transactionId)">Remove</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 @code {
+    private List<Transaction> paidDebts = new List<Transaction>();
 
+    // Change the property name to avoid ambiguity
+    [Inject] public ITransactionService transactionService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allTransactions = await transactionService.GetAllTransactions();
+        paidDebts = allTransactions.Where(t => t.transactionType == TransactionType.debt && t.status == "Paid").ToList();
+    }
+
+    private async Task RemovePaidDebt(Guid transactionId)
+    {
+        var success = await transactionService.DeleteTransaction(transactionId);
+
+        if (success)
+        {
+            // Refresh the list after removing a debt
+            var allTransactions = await transactionService.GetAllTransactions();
+            paidDebts = allTransactions.Where(t => t.transactionType == TransactionType.debt && t.status == "Paid").ToList();
+        }
+        else
+        {
+            // Handle failure (e.g., transaction not found)
+            Console.WriteLine("Failed to remove paid debt.");
+        }
+    }
 }
