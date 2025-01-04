@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CashTrack.Components.Pages
 {
-    public class Dashboard
+    public partial class Dashboard
     {
     }
 }

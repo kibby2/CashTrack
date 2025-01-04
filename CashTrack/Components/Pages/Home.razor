@@ -1,6 +1,7 @@
 ﻿@page "/home"
 @using CashTrack.DataModel.Model
 @using CashTrack.DataAccess.Services.Interface
+@inject NavigationManager Navigation
 
 <h1>Transactions</h1>
 
@@ -12,33 +13,31 @@
         <h3>Recent Transactions</h3>
         @if (recentTransactions.Any())
         {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                     @foreach (var transaction in recentTransactions)
                     {
-                        <tr class="@GetTransactionClass(transaction)">
-                            <td>@transaction.title</td>
-                            <td>@transaction.date.ToShortDateString()</td>
-                            <td>@transaction.amount</td>
-                            <td>
-                                <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
-                            </td>
-                        </tr>
+                                <tr class="@GetTransactionClass(transaction)">
+                                    <td>@transaction.title</td>
+                                    <td>@transaction.date.ToShortDateString()</td>
+                                    <td>@transaction.amount</td>
+                                </tr>
                     }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+                <!-- View All Button -->
+                <button class="btn btn-primary" @onclick="NavigateToCreditDebit">View All</button>
         }
         else
         {
-            <p>No recent transactions available.</p>
+                <p>No recent transactions available.</p>
         }
     </div>
 
@@ -47,35 +46,31 @@
         <h3>Pending Debts</h3>
         @if (debtTransactions.Any())
         {
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Due Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                     @foreach (var transaction in debtTransactions)
                     {
-                        <tr class="table-warning">
-                            <td>@transaction.title</td>
-                            <td>@transaction.date.ToShortDateString()</td>
-                            <td>@transaction.amount</td>
-                            <td>@transaction.duedate?.ToShortDateString()</td>
-                            <td>
-                                <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
-                            </td>
-                        </tr>
+                                <tr class="table-warning">
+                                    <td>@transaction.title</td>
+                                    <td>@transaction.date.ToShortDateString()</td>
+                                    <td>@transaction.amount</td>
+                                    <td>@transaction.duedate?.ToShortDateString()</td>
+                                </tr>
                     }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
         }
         else
         {
-            <p>No pending debts available.</p>
+                <p>No pending debts available.</p>
         }
     </div>
 </div>
@@ -102,27 +97,6 @@
         balance = await transactionService.GetBalance();
     }
 
-    private async Task DeleteTransaction(Guid transactionId)
-    {
-        var success = await transactionService.DeleteTransaction(transactionId);
-
-        if (success)
-        {
-            // Refresh transactions after deletion
-            var allTransactions = await transactionService.GetAllTransactions();
-            recentTransactions = allTransactions
-                .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
-                .OrderByDescending(t => t.date)
-                .ToList();
-            debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
-        }
-        else
-        {
-            // Show an error or notification if deletion fails
-            Console.WriteLine("Error: Transaction not found or could not be deleted.");
-        }
-    }
-
     // Method to get the class for styling based on transaction type (credit = green, debit = red)
     private string GetTransactionClass(Transaction transaction)
     {
@@ -132,5 +106,11 @@
             TransactionType.debit => "table-danger",   // Red for Debit
             _ => ""
         };
+    }
+
+    // Method to navigate to the Credit-Debit page
+    private void NavigateToCreditDebit()
+    {
+        Navigation.NavigateTo("/credit-debit");
     }
 }
