@@ -1,5 +1,108 @@
 ﻿@page "/home"
+@using CashTrack.DataModel.Model
+@using CashTrack.DataAccess.Services.Interface
 
-<h1>Hello, world!</h1>
 
-Welcome to your new app.
+<h1>Transactions</h1>
+
+<h3>Credit Transactions</h3>
+@if (creditTransactions.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in creditTransactions)
+            {
+                <tr>
+                    <td>@transaction.title</td>
+                    <td>@transaction.date.ToShortDateString()</td>
+                    <td>@transaction.amount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No credit transactions available.</p>
+}
+
+<h3>Debit Transactions</h3>
+@if (debitTransactions.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in debitTransactions)
+            {
+                <tr>
+                    <td>@transaction.title</td>
+                    <td>@transaction.date.ToShortDateString()</td>
+                    <td>@transaction.amount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No debit transactions available.</p>
+}
+
+<h3>Debt Transactions</h3>
+@if (debtTransactions.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in debtTransactions)
+            {
+                <tr>
+                    <td>@transaction.title</td>
+                    <td>@transaction.date.ToShortDateString()</td>
+                    <td>@transaction.amount</td>
+                    <td>@transaction.duedate?.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No debt transactions available.</p>
+}
+
+@code {
+    private List<Transaction> creditTransactions = new List<Transaction>();
+    private List<Transaction> debitTransactions = new List<Transaction>();
+    private List<Transaction> debtTransactions = new List<Transaction>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allTransactions = await TransactionService.GetAllTransactions();
+
+        creditTransactions = allTransactions.Where(t => t.transactionType == TransactionType.credit).ToList();
+        debitTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debit).ToList();
+        debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
+    }
+}
+

@@ -20,6 +20,11 @@ namespace CashTrack
 
             builder.Services.AddScoped<IUserService, UserService>();
 
+            builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+            builder.Services.AddScoped<ITagService, TagService>();
+
+
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

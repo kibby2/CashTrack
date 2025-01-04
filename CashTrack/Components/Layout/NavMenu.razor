@@ -1,10 +1,12 @@
 ﻿@using DataModel.Model
-@inject NavigationManager NavManager
+
 
 <div class="sidebar">
     <NavLink class="nav-link" href="/">Home</NavLink>
     <NavLink class="nav-link" href="/profile">Profile</NavLink>
     <NavLink class="nav-link" href="/settings">Settings</NavLink>
+    <NavLink class="nav-link" href="/add-transaction">Add Transaction</NavLink>
+    <NavLink class="nav-link" href="/add-tag">Add tag</NavLink>
 
     
     <button class="nav-link btn btn-link" @onclick="ConfirmLogout">Log Out</button>
@@ -40,7 +42,7 @@
     private void Logout()
     {
         showLogoutConfirmation = false;  
-        NavManager.NavigateTo("/login", true);  
+        Nav.NavigateTo("/login", true);  
     }
 }
 
