@@ -2,107 +2,135 @@
 @using CashTrack.DataModel.Model
 @using CashTrack.DataAccess.Services.Interface
 
-
 <h1>Transactions</h1>
 
-<h3>Credit Transactions</h3>
-@if (creditTransactions.Any())
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transaction in creditTransactions)
-            {
-                <tr>
-                    <td>@transaction.title</td>
-                    <td>@transaction.date.ToShortDateString()</td>
-                    <td>@transaction.amount</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No credit transactions available.</p>
-}
+<h3>Balance: @balance</h3>
 
-<h3>Debit Transactions</h3>
-@if (debitTransactions.Any())
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transaction in debitTransactions)
-            {
-                <tr>
-                    <td>@transaction.title</td>
-                    <td>@transaction.date.ToShortDateString()</td>
-                    <td>@transaction.amount</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No debit transactions available.</p>
-}
+<div class="row">
+    <!-- Recent Transactions (Credit and Debit) -->
+    <div class="col-md-6">
+        <h3>Recent Transactions</h3>
+        @if (recentTransactions.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in recentTransactions)
+                    {
+                        <tr class="@GetTransactionClass(transaction)">
+                            <td>@transaction.title</td>
+                            <td>@transaction.date.ToShortDateString()</td>
+                            <td>@transaction.amount</td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No recent transactions available.</p>
+        }
+    </div>
 
-<h3>Debt Transactions</h3>
-@if (debtTransactions.Any())
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Due Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var transaction in debtTransactions)
-            {
-                <tr>
-                    <td>@transaction.title</td>
-                    <td>@transaction.date.ToShortDateString()</td>
-                    <td>@transaction.amount</td>
-                    <td>@transaction.duedate?.ToShortDateString()</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No debt transactions available.</p>
-}
+    <!-- Pending Debts -->
+    <div class="col-md-6">
+        <h3>Pending Debts</h3>
+        @if (debtTransactions.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in debtTransactions)
+                    {
+                        <tr class="table-warning">
+                            <td>@transaction.title</td>
+                            <td>@transaction.date.ToShortDateString()</td>
+                            <td>@transaction.amount</td>
+                            <td>@transaction.duedate?.ToShortDateString()</td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No pending debts available.</p>
+        }
+    </div>
+</div>
 
 @code {
-    private List<Transaction> creditTransactions = new List<Transaction>();
-    private List<Transaction> debitTransactions = new List<Transaction>();
+    private List<Transaction> recentTransactions = new List<Transaction>(); // Combined credit and debit transactions
     private List<Transaction> debtTransactions = new List<Transaction>();
+    private double balance = 0.0;
+
+    [Inject] public ITransactionService transactionService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var allTransactions = await TransactionService.GetAllTransactions();
+        var allTransactions = await transactionService.GetAllTransactions();
 
-        creditTransactions = allTransactions.Where(t => t.transactionType == TransactionType.credit).ToList();
-        debitTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debit).ToList();
+        // Combine credit and debit transactions for the "Recent Transactions" table
+        recentTransactions = allTransactions
+            .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
+            .OrderByDescending(t => t.date) // Sorting by the most recent date
+            .ToList();
+
         debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
+
+        balance = await transactionService.GetBalance();
+    }
+
+    private async Task DeleteTransaction(Guid transactionId)
+    {
+        var success = await transactionService.DeleteTransaction(transactionId);
+
+        if (success)
+        {
+            // Refresh transactions after deletion
+            var allTransactions = await transactionService.GetAllTransactions();
+            recentTransactions = allTransactions
+                .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
+                .OrderByDescending(t => t.date)
+                .ToList();
+            debtTransactions = allTransactions.Where(t => t.transactionType == TransactionType.debt).ToList();
+        }
+        else
+        {
+            // Show an error or notification if deletion fails
+            Console.WriteLine("Error: Transaction not found or could not be deleted.");
+        }
+    }
+
+    // Method to get the class for styling based on transaction type (credit = green, debit = red)
+    private string GetTransactionClass(Transaction transaction)
+    {
+        return transaction.transactionType switch
+        {
+            TransactionType.credit => "table-success", // Green for Credit
+            TransactionType.debit => "table-danger",   // Red for Debit
+            _ => ""
+        };
     }
 }
-

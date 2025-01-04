@@ -6,7 +6,11 @@ namespace CashTrack.DataAccess.Services.Interface
     {
         Task<List<Transaction>> GetAllTransactions();
         Task< bool> AddTransaction(Transaction transaction);
-        Task<double> GetBalance(); 
+        Task<double> GetBalance();
+        Task<bool> DeleteTransaction(Guid transactionId);
+
+        Task<bool> PayDebt(Guid transactionId);
+
     }
 }
 

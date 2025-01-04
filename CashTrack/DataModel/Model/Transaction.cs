@@ -13,5 +13,7 @@ namespace CashTrack.DataModel.Model
         public string notes { get; set; }
         public DateTime? duedate { get; set; } // Nullable DateTime for debt transactions
         public double remainingBalance { get; set; }
+
+        public string? status { get; set; } = "Pending";
     }
 }

@@ -1,6 +1,7 @@
 ﻿using CashTrack.DataModel.Model;
 using CashTrack.DataAccess.Services.Interface;
 using System.Text.Json;
+using System.Linq;
 
 namespace CashTrack.DataAccess.Services
 {
@@ -59,6 +60,34 @@ namespace CashTrack.DataAccess.Services
                 .Sum(t => t.amount);
 
             return await Task.FromResult(totalCredits - totalDebits);
+        }
+
+        public async Task<bool> DeleteTransaction(Guid transactionId)
+        {
+            var transactionToDelete = _transactions.FirstOrDefault(t => t.transactionId == transactionId);
+
+            if (transactionToDelete == null)
+            {
+                return false; // Transaction not found
+            }
+
+            _transactions.Remove(transactionToDelete);
+            SaveTransactions(_transactions); // Save the updated list
+            return true;
+        }
+
+        public async Task<bool> PayDebt(Guid transactionId)
+        {
+            var debtTransaction = _transactions.FirstOrDefault(t => t.transactionId == transactionId && t.transactionType == TransactionType.debt);
+
+            if (debtTransaction == null)
+            {
+                return false; // Debt transaction not found
+            }
+
+            debtTransaction.status = "Paid";  // Mark the debt as "Paid"
+            SaveTransactions(_transactions);  // Save the updated transaction list
+            return true;
         }
 
         private List<Transaction> LoadTransactions()
