@@ -68,8 +68,11 @@
     protected override async Task OnInitializedAsync()
     {
         allTransactions = await transactionService.GetAllTransactions();
-        // Filter to only show credit and debit transactions initially
-        filteredTransactions = allTransactions.Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit).ToList();
+        // Initially filter transactions to show only credit and debit
+        filteredTransactions = allTransactions
+            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
+                        (t.transactionType != TransactionType.debt))  // Exclude paid debt transactions
+            .ToList();
         balance = await transactionService.GetBalance();
     }
 
@@ -96,15 +99,16 @@
             .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
                         (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                         (!startDate.HasValue || t.date >= startDate) &&
-                        (!endDate.HasValue || t.date <= endDate))  // Apply AND logic between filters
-            .OrderByDescending(t => t.date) // Sort by most recent
+                        (!endDate.HasValue || t.date <= endDate) &&
+                        (t.transactionType != TransactionType.debt))  // Exclude debts
+            .OrderByDescending(t => t.date)  // Sort by most recent
             .ToList();
     }
 
     // Method triggered by the Search button click
     private void OnSearchClick()
     {
-        FilterTransactions();
+        FilterTransactions();  // Filter transactions based on applied filters
     }
 
     // Helper method to determine the row color based on transaction type (credit = green, debit = red)

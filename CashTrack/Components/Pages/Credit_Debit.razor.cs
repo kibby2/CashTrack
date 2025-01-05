@@ -2,7 +2,6 @@
 using CashTrack.DataAccess.Services.Interface;
 using Microsoft.AspNetCore.Components;
 
-
 namespace CashTrack.Pages
 {
     public partial class Credit_Debit : ComponentBase
@@ -20,8 +19,10 @@ namespace CashTrack.Pages
         protected override async Task OnInitializedAsync()
         {
             allTransactions = await transactionService.GetAllTransactions();
-            // Initially filter transactions to show only credit and debit
-            filteredTransactions = allTransactions.Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit).ToList();
+            // Filter transactions to show only credit and debit, exclude debt type
+            filteredTransactions = allTransactions
+                .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
+                .ToList();
             balance = await transactionService.GetBalance();
         }
 
@@ -45,7 +46,7 @@ namespace CashTrack.Pages
         private void FilterTransactions()
         {
             filteredTransactions = allTransactions
-                .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
+                .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&  // Exclude debt
                             (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                             (!startDate.HasValue || t.date >= startDate) &&
                             (!endDate.HasValue || t.date <= endDate))  // Apply AND logic between filters
