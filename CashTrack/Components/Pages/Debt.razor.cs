@@ -17,6 +17,11 @@ namespace CashTrack.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            await LoadDebts();
+        }
+
+        private async Task LoadDebts()
+        {
             var debts = await TransactionService.GetAllTransactions();
             allDebts = debts.Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid").ToList();
             filteredDebts = allDebts;
@@ -48,15 +53,11 @@ namespace CashTrack.Pages
 
             if (success)
             {
-                // Refresh the list after a debt is paid
-                var debts = await TransactionService.GetAllTransactions();
-                allDebts = debts.Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid").ToList();
-                filteredDebts = allDebts;
+                await LoadDebts(); // Refresh the debts list
             }
             else
             {
-                // Handle failure (e.g., insufficient balance, etc.)
-                Console.WriteLine("Failed to pay debt.");
+                Console.WriteLine("Failed to pay debt."); // Handle failure
             }
         }
 
@@ -66,15 +67,11 @@ namespace CashTrack.Pages
 
             if (success)
             {
-                // Refresh the list after a debt is deleted
-                var debts = await TransactionService.GetAllTransactions();
-                allDebts = debts.Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid").ToList();
-                filteredDebts = allDebts;
+                await LoadDebts(); // Refresh the debts list
             }
             else
             {
-                // Handle failure (e.g., transaction not found)
-                Console.WriteLine("Failed to delete debt.");
+                Console.WriteLine("Failed to delete debt."); // Handle failure
             }
         }
     }

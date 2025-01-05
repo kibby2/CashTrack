@@ -11,6 +11,7 @@ namespace CashTrack.DataAccess.Services
         public TransactionService()
         {
             _transactions = LoadTransactions();
+            FixDuplicateTransactionIds(); // Ensure unique IDs on initialization
         }
 
         public async Task<List<Transaction>> GetAllTransactions()
@@ -20,6 +21,9 @@ namespace CashTrack.DataAccess.Services
 
         public async Task<bool> AddTransaction(Transaction transaction)
         {
+            // Ensure the transaction has a unique ID
+            transaction.transactionId = Guid.NewGuid();
+
             var currentBalance = await GetBalance();
 
             // Ensure there is enough balance for debit transactions
@@ -68,6 +72,7 @@ namespace CashTrack.DataAccess.Services
 
         public async Task<bool> DeleteTransaction(Guid transactionId)
         {
+            // Find the transaction with the specified ID
             var transactionToDelete = _transactions.FirstOrDefault(t => t.transactionId == transactionId);
 
             if (transactionToDelete == null)
@@ -82,6 +87,7 @@ namespace CashTrack.DataAccess.Services
 
         public async Task<bool> PayDebt(Guid transactionId)
         {
+            // Find the debt transaction
             var debtTransaction = _transactions.FirstOrDefault(t => t.transactionId == transactionId && t.transactionType == TransactionType.debt);
 
             if (debtTransaction == null)
@@ -89,15 +95,36 @@ namespace CashTrack.DataAccess.Services
                 return false; // Debt transaction not found
             }
 
+            // Get the current balance
             var currentBalance = await GetBalance();
+
+            // Ensure there is enough balance to pay the debt
             if (currentBalance < debtTransaction.amount)
             {
                 return false; // Insufficient balance to pay the debt
             }
 
-            debtTransaction.status = "Paid";  // Mark the debt as "Paid"
-            SaveTransactions(_transactions);  // Save the updated transaction list
-            return true; // Successfully updated the status to "Paid"
+            // Create a new debit transaction to deduct the debt amount
+            var paymentTransaction = new Transaction
+            {
+                transactionId = Guid.NewGuid(),
+                title = $"Debt Payment: {debtTransaction.title}",
+                amount = debtTransaction.amount,
+                transactionType = TransactionType.debit,
+                remainingBalance = currentBalance - debtTransaction.amount,
+                date = DateTime.Now
+            };
+
+            // Add the payment transaction to the transaction list
+            _transactions.Add(paymentTransaction);
+
+            // Update the debt transaction status
+            debtTransaction.status = "Paid";
+
+            // Save the updated transaction list
+            SaveTransactions(_transactions);
+
+            return true; // Debt payment successful
         }
 
         private List<Transaction> LoadTransactions()
@@ -118,6 +145,23 @@ namespace CashTrack.DataAccess.Services
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "transactions.json");
             var json = JsonSerializer.Serialize(transactions);
             File.WriteAllText(filePath, json);
+        }
+
+        private void FixDuplicateTransactionIds()
+        {
+            var uniqueIds = new HashSet<Guid>();
+            foreach (var transaction in _transactions)
+            {
+                // Check if the ID is already in the set
+                if (!uniqueIds.Add(transaction.transactionId))
+                {
+                    // Generate a new unique ID if a duplicate is found
+                    transaction.transactionId = Guid.NewGuid();
+                }
+            }
+
+            // Save the transactions with fixed IDs
+            SaveTransactions(_transactions);
         }
     }
 }

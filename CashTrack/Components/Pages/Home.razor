@@ -24,11 +24,11 @@
                     <tbody>
                     @foreach (var transaction in recentTransactions)
                     {
-                                <tr class="@GetTransactionClass(transaction)">
-                                    <td>@transaction.title</td>
-                                    <td>@transaction.date.ToShortDateString()</td>
-                                    <td>@transaction.amount</td>
-                                </tr>
+                            <tr class="@GetTransactionClass(transaction)">
+                                <td>@transaction.title</td>
+                                <td>@transaction.date.ToShortDateString()</td>
+                                <td>@transaction.amount</td>
+                            </tr>
                     }
                     </tbody>
                 </table>
@@ -58,12 +58,12 @@
                     <tbody>
                     @foreach (var transaction in debtTransactions)
                     {
-                                <tr class="table-warning">
-                                    <td>@transaction.title</td>
-                                    <td>@transaction.date.ToShortDateString()</td>
-                                    <td>@transaction.amount</td>
-                                    <td>@transaction.duedate?.ToShortDateString()</td>
-                                </tr>
+                            <tr class="table-warning">
+                                <td>@transaction.title</td>
+                                <td>@transaction.date.ToShortDateString()</td>
+                                <td>@transaction.amount</td>
+                                <td>@transaction.duedate?.ToShortDateString()</td>
+                            </tr>
                     }
                     </tbody>
                 </table>
@@ -92,7 +92,8 @@
         // Filter credit and debit transactions for the last month
         recentTransactions = allTransactions
             .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
-                        t.date >= oneMonthAgo)
+                        t.date >= oneMonthAgo &&
+                        !t.title.StartsWith("Debt Payment:")) // Exclude debt payments
             .OrderByDescending(t => t.date) // Sort by the most recent date
             .ToList();
 
