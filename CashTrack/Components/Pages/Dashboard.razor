@@ -20,6 +20,12 @@
                 <td>@debt.title</td>
                 <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
                 <td>@debt.amount</td>
+                <!-- <td> @foreach (var transaction in debtTransactions)
+                    {
+                    <td>@transaction.notes</td>
+                    }
+                </td> -->
+
                 <td>
                     <button class="btn btn-danger" @onclick="() => RemovePaidDebt(debt.transactionId)">Remove</button>
                 </td>

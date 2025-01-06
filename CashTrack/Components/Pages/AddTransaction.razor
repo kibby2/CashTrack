@@ -31,6 +31,10 @@
         <label for="amount">Amount</label>
         <InputNumber id="amount" class="form-control" @bind-Value="transaction.amount" />
     </div>
+    <div class="form-group">
+        <label for="notes">Notes</label>
+        <InputTextArea id="notes" class="form-control" @bind-Value="transaction.notes" />
+    </div>
 
     @if (transaction.transactionType == TransactionType.debt)
     {

@@ -30,7 +30,9 @@
                     <th>Title</th>
                     <th>Date</th>
                     <th>Amount</th>
+                    <th>Notes</th>
                     <th>Actions</th>
+                    
                 </tr>
             </thead>
             <tbody>
@@ -40,6 +42,7 @@
                         <td>@transaction.title</td>
                         <td>@transaction.date.ToShortDateString()</td>
                         <td>@transaction.amount</td>
+                        <td>@transaction.notes</td>
                         <td>
                             <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
                         </td>
