@@ -48,7 +48,7 @@ namespace CashTrack.DataAccess.Services
             // Handle debt transaction
             else if (transaction.transactionType == TransactionType.debt)
             {
-                transaction.remainingBalance = currentBalance; // Debt doesn't affect balance
+                transaction.remainingBalance = currentBalance + transaction.amount; // Add debt amount to balance
                 transaction.status = "unpaid";  // Explicitly set status to "unpaid" for debt transactions
             }
 
@@ -67,7 +67,11 @@ namespace CashTrack.DataAccess.Services
                 .Where(t => t.transactionType == TransactionType.debit)
                 .Sum(t => t.amount);
 
-            return await Task.FromResult(totalCredits - totalDebits);
+            var totalDebts = _transactions
+                .Where(t => t.transactionType == TransactionType.debt && t.status == "unpaid")
+                .Sum(t => t.amount);
+
+            return await Task.FromResult(totalCredits - totalDebits + totalDebts);
         }
 
         public async Task<bool> DeleteTransaction(Guid transactionId)

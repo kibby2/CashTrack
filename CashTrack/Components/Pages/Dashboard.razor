@@ -10,6 +10,7 @@
             <th>Title</th>
             <th>Due Date</th>
             <th>Amount</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -20,6 +21,7 @@
                 <td>@debt.title</td>
                 <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
                 <td>@debt.amount</td>
+                <td>@debt.status</td>
                 <!-- <td> @foreach (var transaction in debtTransactions)
                     {
                     <td>@transaction.notes</td>
