@@ -1,6 +1,7 @@
 ﻿using CashTrack.DataAccess.Services;
 using CashTrack.DataAccess.Services.Interface;
 using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
 
 namespace CashTrack
 {
@@ -17,6 +18,8 @@ namespace CashTrack
                 });
 
             builder.Services.AddMauiBlazorWebView();
+
+            builder.Services.AddMudServices();
 
             builder.Services.AddScoped<IUserService, UserService>();
 

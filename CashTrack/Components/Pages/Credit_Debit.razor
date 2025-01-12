@@ -3,7 +3,7 @@
 @using CashTrack.DataAccess.Services.Interface
 @using System.Globalization
 
-<h1>Credit and Debit Transactions</h1>
+<h1>Recent Transactions</h1>
 
 <h3>Balance: @balance</h3>
 
@@ -32,7 +32,6 @@
                     <th>Amount</th>
                     <th>Notes</th>
                     <th>Actions</th>
-                    
                 </tr>
             </thead>
             <tbody>
@@ -71,11 +70,9 @@
     protected override async Task OnInitializedAsync()
     {
         allTransactions = await transactionService.GetAllTransactions();
-        // Initially filter transactions to show only credit and debit
-        filteredTransactions = allTransactions
-            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
-                        (t.transactionType != TransactionType.debt))  // Exclude paid debt transactions
-            .ToList();
+
+        // Filter transactions to exclude debt transactions
+        FilterTransactions();
         balance = await transactionService.GetBalance();
     }
 
@@ -85,7 +82,6 @@
         var success = await transactionService.DeleteTransaction(transactionId);
         if (success)
         {
-            // Refresh transactions after deletion
             allTransactions = await transactionService.GetAllTransactions();
             FilterTransactions();
         }
@@ -99,19 +95,18 @@
     private void FilterTransactions()
     {
         filteredTransactions = allTransactions
-            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
+            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) && // Include only credit and debit
                         (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                         (!startDate.HasValue || t.date >= startDate) &&
-                        (!endDate.HasValue || t.date <= endDate) &&
-                        (t.transactionType != TransactionType.debt))  // Exclude debts
-            .OrderByDescending(t => t.date)  // Sort by most recent
+                        (!endDate.HasValue || t.date <= endDate))  // Apply AND logic between filters
+            .OrderByDescending(t => t.date) // Sort by most recent
             .ToList();
     }
 
     // Method triggered by the Search button click
     private void OnSearchClick()
     {
-        FilterTransactions();  // Filter transactions based on applied filters
+        FilterTransactions();  // Apply search filters
     }
 
     // Helper method to determine the row color based on transaction type (credit = green, debit = red)

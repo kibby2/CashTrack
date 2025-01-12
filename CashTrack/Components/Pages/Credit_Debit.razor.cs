@@ -19,10 +19,9 @@ namespace CashTrack.Pages
         protected override async Task OnInitializedAsync()
         {
             allTransactions = await transactionService.GetAllTransactions();
-            // Filter transactions to show only credit and debit, exclude debt type
-            filteredTransactions = allTransactions
-                .Where(t => t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit)
-                .ToList();
+
+            // Filter transactions to exclude debt transactions
+            FilterTransactions();
             balance = await transactionService.GetBalance();
         }
 
@@ -32,7 +31,6 @@ namespace CashTrack.Pages
             var success = await transactionService.DeleteTransaction(transactionId);
             if (success)
             {
-                // Refresh transactions after deletion
                 allTransactions = await transactionService.GetAllTransactions();
                 FilterTransactions();
             }
@@ -46,12 +44,18 @@ namespace CashTrack.Pages
         private void FilterTransactions()
         {
             filteredTransactions = allTransactions
-                .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&  // Exclude debt
+                .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) && // Include only credit and debit
                             (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                             (!startDate.HasValue || t.date >= startDate) &&
                             (!endDate.HasValue || t.date <= endDate))  // Apply AND logic between filters
                 .OrderByDescending(t => t.date) // Sort by most recent
                 .ToList();
+        }
+
+        // Method triggered by the Search button click
+        private void OnSearchClick()
+        {
+            FilterTransactions();  // Apply search filters
         }
 
         // Helper method to determine the row color based on transaction type (credit = green, debit = red)
@@ -63,12 +67,6 @@ namespace CashTrack.Pages
                 TransactionType.debit => "table-danger",   // Red for Debit
                 _ => ""
             };
-        }
-
-        // Method triggered by the Search button click
-        private void OnSearchClick()
-        {
-            FilterTransactions();  // Filter transactions based on applied filters
         }
     }
 }

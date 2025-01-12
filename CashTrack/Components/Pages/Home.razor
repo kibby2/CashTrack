@@ -13,33 +13,33 @@
         <h3>Recent Transactions</h3>
         @if (recentTransactions.Any())
         {
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var transaction in recentTransactions)
                     {
-                            <tr class="@GetTransactionClass(transaction)">
-                                <td>@transaction.title</td>
-                                <td>@transaction.date.ToShortDateString()</td>
-                                <td>@transaction.amount</td>
-                                <td>@transaction.notes</td>
-                            </tr>
+                        <tr class="@GetTransactionClass(transaction)">
+                            <td>@transaction.title</td>
+                            <td>@transaction.date.ToShortDateString()</td>
+                            <td>@transaction.amount</td>
+                            <td>@transaction.notes</td>
+                        </tr>
                     }
-                    </tbody>
-                </table>
-                <!-- View All Button -->
-                <button class="btn btn-primary" @onclick="NavigateToCreditDebit">View All</button>
+                </tbody>
+            </table>
+            <!-- View All Button -->
+            <button class="btn btn-primary" @onclick="NavigateToCreditDebit">View All</button>
         }
         else
         {
-                <p>No recent transactions available.</p>
+            <p>No recent transactions available.</p>
         }
     </div>
 
@@ -48,35 +48,35 @@
         <h3>Pending Debts</h3>
         @if (debtTransactions.Any())
         {
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Due Date</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var transaction in debtTransactions)
                     {
-                            <tr class="table-warning">
-                                <td>@transaction.title</td>
-                                <td>@transaction.date.ToShortDateString()</td>
-                                <td>@transaction.amount</td>
-                                <td>@transaction.duedate?.ToShortDateString()</td>
-                                <td>@transaction.notes</td>
-                            </tr>
+                        <tr class="table-warning">
+                            <td>@transaction.title</td>
+                            <td>@transaction.date.ToShortDateString()</td>
+                            <td>@transaction.amount</td>
+                            <td>@transaction.duedate?.ToShortDateString()</td>
+                            <td>@transaction.notes</td>
+                        </tr>
                     }
-                    </tbody>
-                </table>
-                <!-- View All Button for Debts -->
-                <button class="btn btn-primary" @onclick="NavigateToDebtPage">View All</button>
+                </tbody>
+            </table>
+            <!-- View All Button for Debts -->
+            <button class="btn btn-primary" @onclick="NavigateToDebtPage">View All</button>
         }
         else
         {
-                <p>No pending debts available.</p>
+            <p>No pending debts available.</p>
         }
     </div>
 </div>
@@ -84,31 +84,43 @@
 @code {
     private List<Transaction> recentTransactions = new List<Transaction>(); // Combined credit and debit transactions
     private List<Transaction> debtTransactions = new List<Transaction>();
-    private double balance = 0.0;
+    private double balance;
 
     [Inject] public ITransactionService transactionService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var allTransactions = await transactionService.GetAllTransactions();
+        var result = await FilterTransactionsForLastMonth();
+        recentTransactions = result.RecentTransactions;
+        debtTransactions = result.DebtTransactions;
+        balance = result.Balance;
+    }
+
+    public async Task<(List<Transaction> RecentTransactions, List<Transaction> DebtTransactions, double Balance)> FilterTransactionsForLastMonth()
+    {
         var oneMonthAgo = DateTime.Now.AddMonths(-1); // Calculate date for 1 month ago
+        var allTransactions = await transactionService.GetAllTransactions();
 
         // Filter credit and debit transactions for the last month
-        recentTransactions = allTransactions
+        var recentTransactions = allTransactions
             .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) &&
                         t.date >= oneMonthAgo &&
-                        !t.title.StartsWith("Debt Payment:")) // Exclude debt payments
+                        !(t.title?.StartsWith("Debt Payment:") ?? false)) // Safely handle null titles
             .OrderByDescending(t => t.date) // Sort by the most recent date
             .ToList();
 
-        // Filter debt transactions for the last month and "pending" status
-        debtTransactions = allTransactions
+        // Filter debt transactions for the last month and "unpaid" status
+        var debtTransactions = allTransactions
             .Where(t => t.transactionType == TransactionType.debt &&
                         t.status == "unpaid" &&
                         t.date >= oneMonthAgo) // Filter for the last month
             .ToList();
 
-        balance = await transactionService.GetBalance();
+        // Get the current balance
+        var balance = await transactionService.GetBalance();
+
+        // Return all results as a tuple
+        return (recentTransactions, debtTransactions, balance);
     }
 
     // Method to get the class for styling based on transaction type (credit = green, debit = red)

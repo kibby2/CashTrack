@@ -2,50 +2,49 @@
 using CashTrack.DataAccess.Services.Interface;
 using System.Text.Json;
 
+
 namespace CashTrack.DataAccess.Services
 {
     public class TagService : ITagService
     {
-        private readonly string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
-        private List<Tag> _tags;
+        private readonly string filePath;
 
         public TagService()
         {
-            _tags = LoadTags();
+            filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
         }
 
+        // Adds a tag to the list and saves to a JSON file
+        public async Task AddTag(Tag tag)
+        {
+            var tags = await LoadTags();
+            tags.Add(tag);
+            await SaveTags(tags);
+        }
+
+        // Returns all tags from the JSON file
         public async Task<List<Tag>> GetAllTags()
         {
-            return await Task.FromResult(_tags);
+            return await LoadTags();
         }
 
-        public async Task<bool> AddTag(Tag tag)
-        {
-            if (_tags.Any(t => t.TagName.Equals(tag.TagName, StringComparison.OrdinalIgnoreCase)))
-            {
-                return false; // Tag with the same name already exists
-            }
-
-            _tags.Add(tag);
-            SaveTags(_tags);
-            return await Task.FromResult(true);
-        }
-
-        private List<Tag> LoadTags()
+        // Loads tags from the JSON file
+        private async Task<List<Tag>> LoadTags()
         {
             if (!File.Exists(filePath))
             {
                 return new List<Tag>();
             }
 
-            var json = File.ReadAllText(filePath);
+            var json = await File.ReadAllTextAsync(filePath);
             return JsonSerializer.Deserialize<List<Tag>>(json) ?? new List<Tag>();
         }
 
-        private void SaveTags(List<Tag> tags)
+        // Saves tags to the JSON file
+        private async Task SaveTags(List<Tag> tags)
         {
-            var json = JsonSerializer.Serialize(tags);
-            File.WriteAllText(filePath, json);
+            var json = JsonSerializer.Serialize(tags, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(filePath, json);
         }
     }
 }

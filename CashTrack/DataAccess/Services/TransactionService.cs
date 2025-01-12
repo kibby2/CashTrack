@@ -59,20 +59,27 @@ namespace CashTrack.DataAccess.Services
 
         public async Task<double> GetBalance()
         {
+            // Calculate the total credits
             var totalCredits = _transactions
                 .Where(t => t.transactionType == TransactionType.credit)
                 .Sum(t => t.amount);
 
+            // Calculate the total debits
             var totalDebits = _transactions
                 .Where(t => t.transactionType == TransactionType.debit)
                 .Sum(t => t.amount);
 
-            var totalDebts = _transactions
+            // Calculate only the unpaid debts
+            var unpaidDebts = _transactions
                 .Where(t => t.transactionType == TransactionType.debt && t.status == "unpaid")
                 .Sum(t => t.amount);
 
-            return await Task.FromResult(totalCredits - totalDebits + totalDebts);
+            // Calculate the balance
+            var balance = totalCredits - totalDebits + unpaidDebts;
+
+            return await Task.FromResult(balance);
         }
+
 
         public async Task<bool> DeleteTransaction(Guid transactionId)
         {
