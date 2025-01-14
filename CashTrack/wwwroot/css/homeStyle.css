@@ -1,0 +1,145 @@
+﻿/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e0c5eb;
+    color: #333;
+}
+
+h1, h3, h4 {
+    color: #080808
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    font-size: 1.8rem;
+    color: #1d1d1d;
+}
+
+/* Section Styling */
+.row {
+    margin-bottom: 2rem;
+}
+
+    /* Metrics Row Styling (shades of purple) */
+    .row.mt-4 {
+        display: flex;
+        justify-content: space-between;
+    }
+
+.col-md-3 {
+    background-color: #f2e7ff;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    margin: 0 10px;
+    text-align: center;
+}
+
+    .col-md-3 h4 {
+        font-size: 1.2rem;
+        color: #5e2e8c;
+        margin-bottom: 10px;
+    }
+
+    .col-md-3 p {
+        font-size: 1.1rem;
+        margin: 5px 0;
+    }
+
+    /* Add varying shades of purple */
+    .col-md-3:nth-child(1) {
+        background-color: #f3e6fc;
+    }
+
+    .col-md-3:nth-child(2) {
+        background-color: #e0c6f1;
+    }
+
+    .col-md-3:nth-child(3) {
+        background-color: #d0a9e3;
+    }
+
+    .col-md-3:nth-child(4) {
+        background-color: #b77cd4;
+    }
+
+/* Tables Styling */
+table {
+    width: 100%;
+    margin-top: 1rem;
+    border-collapse: collapse;
+}
+
+    table th, table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    table th {
+        background-color: #f8f8f8;
+        font-weight: bold;
+        color: #444;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+/* Button Styling */
+button {
+    background-color: #5e2e8c;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+    button:hover {
+        background-color: #4a2475;
+    }
+
+/* Paper and Chart Styling */
+.mud-paper {
+    border-radius: 10px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.mud-chart {
+    margin-top: 1rem;
+}
+
+/* Specific Styling for the Donut and Pie Charts */
+.mud-paper .mud-chart {
+    border: 3px solid #5e2e8c;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+table {
+    width: 100%;
+    margin-top: 1rem;
+    border-collapse: collapse;
+    border: 2.5px solid black;
+}
+
+    table th, table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ffffff;
+    }
+
+    table th {
+        background-color: #ffffff
+        font-weight: bold;
+        color: black; /* White text color for table headings */
+    }

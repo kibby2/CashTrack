@@ -1,0 +1,95 @@
+﻿/* Set background color and text color */
+body {
+    background-color: #cbb0d6; /* Light gray background */
+    color: #333; /* Dark text color for better readability */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Style the form container */
+.form-login {
+    background-color: #ffffff; /* White background for the form */
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for 3D effect */
+    width: 100%;
+    max-width: 500px; /* Wider form container */
+}
+
+/* Style the form heading */
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Form input fields */
+.form-floating {
+    margin-bottom: 15px; /* Space between form elements */
+}
+
+.form-control {
+    border-radius: 5px;
+    padding: 15px; /* More padding for a better user experience */
+    font-size: 16px;
+    background-color: #f8f8f8;
+    color: #333;
+    border: 1px solid #ccc; /* Light border color */
+    width: 100%; /* Full width for input fields */
+}
+
+    .form-control:focus {
+        background-color: #ffffff; /* White background on focus */
+        border-color: #8e44ad; /* Purple border on focus */
+        box-shadow: 0 0 5px rgba(142, 68, 173, 0.7); /* Purple glow on focus */
+    }
+
+/* Dropdown styling */
+select.form-control {
+    border-radius: 5px;
+    padding: 15px; /* More padding for a better user experience */
+    font-size: 16px;
+    background-color: #f8f8f8;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+    select.form-control:focus {
+        background-color: #ffffff;
+        border-color: #8e44ad;
+        box-shadow: 0 0 5px rgba(142, 68, 173, 0.7);
+    }
+
+/* Purple Login Button */
+.btn-primary {
+    background-color: #8e44ad; /* Purple background */
+    border-color: #8e44ad;
+    padding: 12px 20px;
+    border-radius: 5px;
+    width: 100%; /* Make the button full width */
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #9b59b6; /* Lighter purple on hover */
+        border-color: #9b59b6;
+    }
+
+/* Error Message Styling */
+.alert-danger {
+    background-color: #e74c3c; /* Red background for error */
+    color: white;
+    border-radius: 5px;
+    padding: 12px;
+    margin-top: 10px;
+    font-weight: 600;
+    text-align: center;
+}

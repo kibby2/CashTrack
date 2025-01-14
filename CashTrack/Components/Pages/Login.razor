@@ -1,6 +1,6 @@
 ﻿@page "/login"
 @using CashTrack.DataModel.Model
-
+<link href="css/loginStyle.css" rel="stylesheet" />
 
 <div class="form-login">
     <form class="text-center" @onsubmit="HandleLogin">
@@ -21,6 +21,7 @@
         <!-- Currency Dropdown -->
         <div class="form-floating mb-3">
             <label for="currencyDropdown">Select Currency</label>
+            <br>
             <select id="currencyDropdown" name="selectedCurrency" class="form-control">
                 @foreach (var currency in Currency.GetAvailableCurrencies())
                 {

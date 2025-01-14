@@ -1,6 +1,7 @@
 ﻿@page "/add-transaction"
 @using CashTrack.DataModel.Model
 
+<link href="css/homeStyle.css" rel="stylesheet" />
 
 <h3>Add Transaction</h3>
 
@@ -53,9 +54,8 @@
                 <option value="@tag.TagID">@tag.TagName</option>
             }
         </InputSelect>
-        <button class="btn btn-link" @onclick="NavigateToAddTag">Add Tag</button>
     </div>
-
+    <br />
     <button type="submit" class="btn btn-primary">Add Transaction</button>
 
     @if (showError)
