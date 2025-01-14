@@ -1,5 +1,4 @@
 ﻿using CashTrack.DataModel.Model;
-using System.Threading.Tasks;
 
 namespace CashTrack.DataAccess.Services.Interface
 {

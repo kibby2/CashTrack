@@ -1,4 +1,6 @@
 ﻿using CashTrack.DataModel.Model;
+using CashTrack.Services;
+using Microsoft.AspNetCore.Components;
 
 namespace CashTrack.Components.Pages
 {
@@ -7,6 +9,7 @@ namespace CashTrack.Components.Pages
         private string? ErrorMessage;
 
         public User Users { get; set; } = new();
+
 
         #region Login
         private async void HandleLogin()
@@ -20,6 +23,7 @@ namespace CashTrack.Components.Pages
                 ErrorMessage = "Invalid username or password.";
             }
         }
+
         #endregion
 
     }

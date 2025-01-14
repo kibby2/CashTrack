@@ -9,7 +9,7 @@
 
 <div class="row">
     <!-- Recent Transactions (Credit and Debit) -->
-    <div class="col-md-6">
+    <div class="col-md-4">
         <h3>Recent Transactions</h3>
         @if (recentTransactions.Any())
         {
@@ -34,7 +34,6 @@
                     }
                 </tbody>
             </table>
-            <!-- View All Button -->
             <button class="btn btn-primary" @onclick="NavigateToCreditDebit">View All</button>
         }
         else
@@ -44,7 +43,7 @@
     </div>
 
     <!-- Pending Debts -->
-    <div class="col-md-6">
+    <div class="col-md-4">
         <h3>Pending Debts</h3>
         @if (debtTransactions.Any())
         {
@@ -71,7 +70,6 @@
                     }
                 </tbody>
             </table>
-            <!-- View All Button for Debts -->
             <button class="btn btn-primary" @onclick="NavigateToDebtPage">View All</button>
         }
         else
@@ -79,11 +77,49 @@
             <p>No pending debts available.</p>
         }
     </div>
+
+    <!-- Paid Debts -->
+    <div class="col-md-4">
+        <h3>Paid Debts</h3>
+        @if (paidDebts.Any())
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var debt in paidDebts)
+                    {
+                        <tr>
+                            <td>@debt.title</td>
+                            <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
+                            <td>@debt.amount</td>
+                            <td>@debt.status</td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => RemovePaidDebt(debt.transactionId)">Remove</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No paid debts available.</p>
+        }
+    </div>
 </div>
 
 @code {
     private List<Transaction> recentTransactions = new List<Transaction>(); // Combined credit and debit transactions
     private List<Transaction> debtTransactions = new List<Transaction>();
+    private List<Transaction> paidDebts = new List<Transaction>(); // Paid debts
     private double balance;
 
     [Inject] public ITransactionService transactionService { get; set; }
@@ -94,6 +130,10 @@
         recentTransactions = result.RecentTransactions;
         debtTransactions = result.DebtTransactions;
         balance = result.Balance;
+
+        // Load paid debts
+        var allTransactions = await transactionService.GetAllTransactions();
+        paidDebts = allTransactions.Where(t => t.transactionType == TransactionType.debt && t.status == "Paid").ToList();
     }
 
     public async Task<(List<Transaction> RecentTransactions, List<Transaction> DebtTransactions, double Balance)> FilterTransactionsForLastMonth()
@@ -143,6 +183,23 @@
     // Method to navigate to the Debts page
     private void NavigateToDebtPage()
     {
-        Navigation.NavigateTo("/debt"); // You can replace "/debts" with the correct URL or route
+        Navigation.NavigateTo("/debt");
+    }
+
+    private async Task RemovePaidDebt(Guid transactionId)
+    {
+        var success = await transactionService.DeleteTransaction(transactionId);
+
+        if (success)
+        {
+            // Refresh the list after removing a debt
+            var allTransactions = await transactionService.GetAllTransactions();
+            paidDebts = allTransactions.Where(t => t.transactionType == TransactionType.debt && t.status == "Paid").ToList();
+        }
+        else
+        {
+            // Handle failure (e.g., transaction not found)
+            Console.WriteLine("Failed to remove paid debt.");
+        }
     }
 }
