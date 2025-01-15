@@ -25,7 +25,11 @@ namespace CashTrack.DataAccess.Services
         // Returns all tags from the JSON file
         public async Task<List<Tag>> GetAllTags()
         {
-            return await LoadTags();
+            var response = await LoadTags();
+
+            var listTag = response.ToList();
+
+            return listTag;
         }
 
         // Loads tags from the JSON file

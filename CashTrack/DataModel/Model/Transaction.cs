@@ -5,7 +5,9 @@ namespace CashTrack.DataModel.Model
     public class Transaction
     {
         public Guid transactionId { get; set; }
-        public Tag tagID { get; set; }
+        public Tag tag { get; set; }
+
+        public Guid tagId { get; set; }
         public DateTime date { get; set; }
         public TransactionType transactionType { get; set; }
         public string title { get; set; }
