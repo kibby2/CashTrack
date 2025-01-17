@@ -52,21 +52,6 @@ namespace CashTrack.Pages
                 .ToList();
         }
 
-        // Method triggered by the Search button click
-        private void OnSearchClick()
-        {
-            FilterTransactions();  // Apply search filters
-        }
-
-        // Helper method to determine the row color based on transaction type (credit = green, debit = red)
-        private string GetTransactionClass(Transaction transaction)
-        {
-            return transaction.transactionType switch
-            {
-                TransactionType.credit => "table-success", // Green for Credit
-                TransactionType.debit => "table-danger",   // Red for Debit
-                _ => ""
-            };
-        }
+        
     }
 }

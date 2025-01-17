@@ -1,12 +1,12 @@
 ﻿using System;
+using static MudBlazor.CategoryTypes;
 
 namespace CashTrack.DataModel.Model
 {
     public class Transaction
     {
         public Guid transactionId { get; set; }
-        public Tag tag { get; set; }
-
+        public List<string> tags { get; set; } = new List<string>(); 
         public Guid tagId { get; set; }
         public DateTime date { get; set; }
         public TransactionType transactionType { get; set; }

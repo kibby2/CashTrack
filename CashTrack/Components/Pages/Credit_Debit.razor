@@ -18,6 +18,15 @@
 
         <input type="date" class="form-control mb-3" @bind="endDate" />
 
+        <!-- Tag Dropdown -->
+        <select class="form-control mb-3" @bind="selectedTag">
+            <option value="">All Tags</option>
+            @foreach (var tag in availableTags)
+            {
+                <option value="@tag">@tag</option>
+            }
+        </select>
+
         <!-- Search Button -->
         <button class="btn btn-primary mt-3" @onclick="OnSearchClick">Search</button>
     </div>
@@ -33,6 +42,7 @@
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Notes</th>
+                    <th>Tags</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -44,6 +54,7 @@
                         <td>@transaction.date.ToShortDateString()</td>
                         <td>@transaction.amount</td>
                         <td>@transaction.notes</td>
+                        <td>@string.Join(", ", transaction.tags ?? new List<string>())</td>
                         <td>
                             <button class="btn btn-danger" @onclick="() => DeleteTransaction(transaction.transactionId)">Delete</button>
                         </td>
@@ -61,24 +72,24 @@
 @code {
     private List<Transaction> allTransactions = new List<Transaction>();
     private List<Transaction> filteredTransactions = new List<Transaction>();
+    private List<string> availableTags = new List<string>();
     private double balance = 0.0;
     private string searchQuery = string.Empty;
     private DateTime? startDate;
     private DateTime? endDate;
+    private string selectedTag = string.Empty;
 
     [Inject] public ITransactionService transactionService { get; set; }
+    [Inject] public ITagService tagService { get; set; }
 
-    // Load transactions on page initialization
     protected override async Task OnInitializedAsync()
     {
         allTransactions = await transactionService.GetAllTransactions();
-
-        // Filter transactions to exclude debt transactions
+        availableTags = (await tagService.GetAllTags()).Select(t => t.TagName).ToList();
         FilterTransactions();
         balance = await transactionService.GetBalance();
     }
 
-    // Delete a transaction by its ID
     private async Task DeleteTransaction(Guid transactionId)
     {
         var success = await transactionService.DeleteTransaction(transactionId);
@@ -87,37 +98,30 @@
             allTransactions = await transactionService.GetAllTransactions();
             FilterTransactions();
         }
-        else
-        {
-            Console.WriteLine("Error: Transaction not found or could not be deleted.");
-        }
     }
 
-    // Filter transactions based on title, startDate, and endDate
     private void FilterTransactions()
     {
         filteredTransactions = allTransactions
-            .Where(t => (t.transactionType == TransactionType.credit || t.transactionType == TransactionType.debit) && // Include only credit and debit
-                        (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+            .Where(t => (string.IsNullOrEmpty(searchQuery) || t.title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
                         (!startDate.HasValue || t.date >= startDate) &&
-                        (!endDate.HasValue || t.date <= endDate))  // Apply AND logic between filters
-            .OrderByDescending(t => t.date) // Sort by most recent
+                        (!endDate.HasValue || t.date <= endDate) &&
+                        (string.IsNullOrEmpty(selectedTag) || (t.tags != null && t.tags.Contains(selectedTag))))
+            .OrderByDescending(t => t.date)
             .ToList();
     }
 
-    // Method triggered by the Search button click
     private void OnSearchClick()
     {
-        FilterTransactions();  // Apply search filters
+        FilterTransactions();
     }
 
-    // Helper method to determine the row color based on transaction type (credit = green, debit = red)
     private string GetTransactionClass(Transaction transaction)
     {
         return transaction.transactionType switch
         {
-            TransactionType.credit => "table-success", // Green for Credit
-            TransactionType.debit => "table-danger",   // Red for Debit
+            TransactionType.credit => "table-success",
+            TransactionType.debit => "table-danger",
             _ => ""
         };
     }
