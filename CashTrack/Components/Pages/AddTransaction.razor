@@ -74,7 +74,6 @@
     private List<Tag> tags = new List<Tag>();
     private bool showError = false;
     private string errorMessage = string.Empty;
- 
 
     protected override async Task OnInitializedAsync()
     {
@@ -83,7 +82,20 @@
 
     private async Task HandleValidSubmit()
     {
-        // Validate and process the transaction
+        // Ensure all required fields except notes are filled
+        if (string.IsNullOrWhiteSpace(transaction.title) ||
+            transaction.amount <= 0 ||
+            transaction.date == default ||
+            transaction.transactionType == default ||
+            (transaction.transactionType == TransactionType.debt && transaction.duedate == null) ||
+            transaction.tagId == Guid.Empty)
+        {
+            showError = true;
+            errorMessage = "Please fill out all required fields.";
+            return;
+        }
+
+        // Process the transaction
         var selectedTag = tags.FirstOrDefault(t => t.TagID == transaction.tagId);
         if (selectedTag != null)
         {

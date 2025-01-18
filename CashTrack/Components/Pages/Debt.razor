@@ -32,38 +32,49 @@
             <th>Amount</th>
             <th>Due Date</th>
             <th>Status</th>
+            <th>Tags</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var debt in filteredDebts)
         {
-                <tr>
-                    <td>@debt.title</td>
-                    <td>@debt.amount</td>
-                    <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
-                    <td>@debt.status</td>
-                    <td>
-                        <button class="btn btn-success" @onclick="() => PayDebt(debt.transactionId)">Pay</button>
-                        <button class="btn btn-danger" @onclick="() => DeleteDebt(debt.transactionId)">Delete</button>
-                    </td>
-                </tr>
+            <tr>
+                <td>@debt.title</td>
+                <td>@debt.amount</td>
+                <td>@debt.duedate?.ToString("yyyy-MM-dd")</td>
+                <td>@debt.status</td>
+                <td>
+                    @if (debt.tags != null && debt.tags.Any())
+                    {
+                        @string.Join(", ", debt.tags)
+                    }
+                    else
+                    {
+                        <span>No Tags</span>
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-success" @onclick="() => PayDebt(debt.transactionId)">Pay</button>
+                    <button class="btn btn-danger" @onclick="() => DeleteDebt(debt.transactionId)">Delete</button>
+                </td>
+            </tr>
         }
     </tbody>
 </table>
 
 @if (showNotification)
 {
-        <div class="alert alert-success mt-3" role="alert">
+    <div class="alert alert-success mt-3" role="alert">
         @notificationMessage
-        </div>
+    </div>
 }
 
 @if (showErrorNotification)
 {
-        <div class="alert alert-danger mt-3" role="alert">
-            Insufficient balance to pay the debt.
-        </div>
+    <div class="alert alert-danger mt-3" role="alert">
+        Insufficient balance to pay the debt.
+    </div>
 }
 
 @code {
@@ -86,7 +97,10 @@
     private async Task LoadDebts()
     {
         var debts = await TransactionService.GetAllTransactions();
-        allDebts = debts.Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid").ToList();
+        allDebts = debts
+            .Where(d => d.transactionType == TransactionType.debt && d.status == "unpaid")
+            .ToList();
+
         filteredDebts = allDebts;
     }
 
@@ -96,7 +110,9 @@
 
         if (!string.IsNullOrWhiteSpace(titleFilter))
         {
-            filteredDebts = filteredDebts.Where(d => d.title.Contains(titleFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+            filteredDebts = filteredDebts
+                .Where(d => d.title.Contains(titleFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
         if (startDateFilter.HasValue)

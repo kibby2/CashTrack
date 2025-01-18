@@ -144,6 +144,63 @@
 
  
 </div>
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card" style="background-color: #f8e9ff; border: 1px solid #e2c7ff;">
+            <div class="card-body">
+                <h4 class="card-title">Highest Inflow (Credit)</h4>
+                @if (highestInflowTransaction != null)
+                {
+                    <p class="card-text"><strong>Title:</strong> @highestInflowTransaction.title</p>
+                    <p class="card-text"><strong>Amount:</strong> @highestInflowTransaction.amount</p>
+                    <p class="card-text"><strong>Date:</strong> @highestInflowTransaction.date.ToShortDateString()</p>
+                }
+                else
+                {
+                    <p class="card-text">No inflow transactions available.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card" style="background-color: #f8e9ff; border: 1px solid #e2c7ff;">
+            <div class="card-body">
+                <h4 class="card-title">Highest Outflow (Debit)</h4>
+                @if (highestOutflowTransaction != null)
+                {
+                    <p class="card-text"><strong>Title:</strong> @highestOutflowTransaction.title</p>
+                    <p class="card-text"><strong>Amount:</strong> @highestOutflowTransaction.amount</p>
+                    <p class="card-text"><strong>Date:</strong> @highestOutflowTransaction.date.ToShortDateString()</p>
+                }
+                else
+                {
+                    <p class="card-text">No outflow transactions available.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card" style="background-color: #f8e9ff; border: 1px solid #e2c7ff;">
+            <div class="card-body">
+                <h4 class="card-title">Highest Debt</h4>
+                @if (highestDebtTransaction != null)
+                {
+                    <p class="card-text"><strong>Title:</strong> @highestDebtTransaction.title</p>
+                    <p class="card-text"><strong>Amount:</strong> @highestDebtTransaction.amount</p>
+                    <p class="card-text"><strong>Date:</strong> @highestDebtTransaction.date.ToShortDateString()</p>
+                }
+                else
+                {
+                    <p class="card-text">No debt transactions available.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Row with Donut Chart for Transaction Metrics (Credit, Debit, Cleared Debt, Remaining Debt) -->
 <div class="row mt-4">
@@ -202,6 +259,10 @@
     private int PaidDebtCount { get; set; }
     private double PaidDebtAmount { get; set; }
 
+    private Transaction highestInflowTransaction { get; set; }
+    private Transaction highestOutflowTransaction { get; set; }
+    private Transaction highestDebtTransaction { get; set; }
+
     [Inject] public ITransactionService transactionService { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -214,6 +275,8 @@
         // Load paid debts
         var allTransactions = await transactionService.GetAllTransactions();
         paidDebts = allTransactions.Where(t => t.transactionType == TransactionType.debt && t.status == "Paid").ToList();
+
+
 
         // Prepare the transaction metrics for the donut chart
         int credit = allTransactions.Count(t => t.transactionType == TransactionType.credit);
@@ -247,6 +310,23 @@
         PaidDebtAmount = allTransactions
             .Where(t => t.transactionType == TransactionType.debt && t.status == "Paid")
             .Sum(t => t.amount);
+
+        //finding highest transactions
+        highestInflowTransaction = allTransactions
+       .Where(t => t.transactionType == TransactionType.credit)
+       .OrderByDescending(t => t.amount)
+       .FirstOrDefault();
+
+        highestOutflowTransaction = allTransactions
+            .Where(t => t.transactionType == TransactionType.debit)
+            .OrderByDescending(t => t.amount)
+            .FirstOrDefault();
+
+        highestDebtTransaction = allTransactions
+            .Where(t => t.transactionType == TransactionType.debt)
+            .OrderByDescending(t => t.amount)
+            .FirstOrDefault();
+
 
         // Prepare data for the pie chart (Top 5 Highest Transactions)
         var topTransactionsList = allTransactions
